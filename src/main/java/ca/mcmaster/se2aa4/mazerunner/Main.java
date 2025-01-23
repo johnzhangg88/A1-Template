@@ -1,36 +1,32 @@
-package ca.mcmaster.se2aa4.mazerunner;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class Main {
-
-    private static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) {
-        System.out.println("** Starting Maze Runner");
+        Options options = new Options();
+        options.addOption("i", "input", true, "Maze input file");
+
+        CommandLineParser parser = new DefaultParser();
         try {
-            System.out.println("**** Reading the maze from file " + args[0]);
-            BufferedReader reader = new BufferedReader(new FileReader(args[0]));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                for (int idx = 0; idx < line.length(); idx++) {
-                    if (line.charAt(idx) == '#') {
-                        System.out.print("WALL ");
-                    } else if (line.charAt(idx) == ' ') {
-                        System.out.print("PASS ");
-                    }
-                }
-                System.out.print(System.lineSeparator());
+            CommandLine cmd = parser.parse(options, args);
+            if (cmd.hasOption("i")) {
+                String mazeFile = cmd.getOptionValue("i");
+                logger.info("Maze file provided: " + mazeFile);
+
+                Maze maze = new Maze(mazeFile);
+                PathFinder pathFinder = new PathFinder(maze);
+                String path = pathFinder.findPath();
+
+                logger.info("Path found: " + path);
+                System.out.println("Path: " + path);
+            } else {
+                logger.error("No maze file provided. Use -i to specify the input file.");
             }
-        } catch(Exception e) {
-            System.err.println("/!\\ An error has occured /!\\");
+        } catch (ParseException e) {
+            logger.error("Error parsing arguments: ", e);
         }
-        System.out.println("**** Computing path");
-        System.out.println("PATH NOT COMPUTED");
-        System.out.println("** End of MazeRunner");
     }
 }
